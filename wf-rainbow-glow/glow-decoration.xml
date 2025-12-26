@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<wayfire>
+    <plugin name="glow-decoration">
+        <_short>Glow Decoration</_short>
+        <_long>Hyprland-style glowing window borders for Wayfire</_long>
+        <category>Effects</category>
+        
+        <group>
+            <_short>Appearance</_short>
+            
+            <option name="active_color" type="color">
+                <_short>Active Window Glow Color</_short>
+                <_long>The glow color for focused windows (RGBA)</_long>
+                <default>0.33 0.55 0.83 1.0</default>
+            </option>
+            
+            <option name="inactive_color" type="color">
+                <_short>Inactive Window Glow Color</_short>
+                <_long>The glow color for unfocused windows (RGBA)</_long>
+                <default>0.4 0.4 0.45 1.0</default>
+            </option>
+            
+            <option name="gradient_color_2" type="color">
+                <_short>Secondary Gradient Color</_short>
+                <_long>Second color for gradient effect (RGBA)</_long>
+                <default>0.55 0.33 0.83 1.0</default>
+            </option>
+            
+            <option name="glow_radius" type="double">
+                <_short>Glow Radius</_short>
+                <_long>How far the glow extends from the window border (pixels)</_long>
+                <default>8.0</default>
+                <min>1.0</min>
+                <max>50.0</max>
+            </option>
+            
+            <option name="glow_intensity" type="double">
+                <_short>Glow Intensity</_short>
+                <_long>Brightness multiplier for the glow effect</_long>
+                <default>0.7</default>
+                <min>0.1</min>
+                <max>2.0</max>
+            </option>
+            
+            <option name="border_width" type="double">
+                <_short>Border Width</_short>
+                <_long>Width of the solid border line (pixels)</_long>
+                <default>2.0</default>
+                <min>0.0</min>
+                <max>10.0</max>
+            </option>
+            
+            <option name="corner_radius" type="double">
+                <_short>Corner Radius</_short>
+                <_long>Radius for rounded corners (pixels)</_long>
+                <default>10.0</default>
+                <min>0.0</min>
+                <max>50.0</max>
+            </option>
+        </group>
+        
+        <group>
+            <_short>Animation</_short>
+            
+            <option name="animation_speed" type="double">
+                <_short>Animation Speed</_short>
+                <_long>Speed multiplier for glow animations</_long>
+                <default>2.0</default>
+                <min>0.0</min>
+                <max>10.0</max>
+            </option>
+            
+            <option name="enable_gradient" type="bool">
+                <_short>Enable Gradient</_short>
+                <_long>Use a gradient between two colors for the glow</_long>
+                <default>true</default>
+            </option>
+            
+            <option name="gradient_angle" type="double">
+                <_short>Gradient Angle</_short>
+                <_long>Angle of the color gradient in degrees</_long>
+                <default>45.0</default>
+                <min>0.0</min>
+                <max>360.0</max>
+            </option>
+        </group>
+    </plugin>
+</wayfire>
