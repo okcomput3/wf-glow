@@ -346,6 +346,12 @@ void glow_decoration_t::add_decoration(wayfire_view view) {
         return;
     }
     
+    // Skip CSD (client-side decorated) windows
+    auto toplevel = toplevel_cast(view);
+    if (toplevel && !toplevel->should_be_decorated()) {
+        return;
+    }
+    
     auto node = std::make_shared<glow_decoration_node_t>(view);
     node->set_active(view == focused_view);
     
@@ -353,27 +359,6 @@ void glow_decoration_t::add_decoration(wayfire_view view) {
     wf::scene::add_front(view_node, node);
     
     decorations[view] = node;
-    
-    // Connect to geometry changed signal to damage both old and new positions
-    // Store initial bounding box
-    node->prev_bbox = node->get_bounding_box();
-    
-    // Set callback BEFORE connecting
-    node->on_geometry_changed = [node] (wf::view_geometry_changed_signal *ev) {
-        // Damage the old position
-        wf::scene::node_damage_signal old_damage;
-        old_damage.region = wf::region_t{node->prev_bbox};
-        node->emit(&old_damage);
-        
-        // Get and store new bounding box
-        node->prev_bbox = node->get_bounding_box();
-        
-        // Damage the new position
-        wf::scene::node_damage_signal new_damage;
-        new_damage.region = wf::region_t{node->prev_bbox};
-        node->emit(&new_damage);
-    };
-    view->connect(&node->on_geometry_changed);
     
     LOGD("Added glow decoration for: ", view->get_title());
 }
