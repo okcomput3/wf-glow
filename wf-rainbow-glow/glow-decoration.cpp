@@ -17,6 +17,7 @@ namespace glow_decoration {
 
 glow_program_t g_glow_program;
 glow_config_t g_config;
+static std::chrono::steady_clock::time_point g_start_time = std::chrono::steady_clock::now();
 
 // Shader compilation
 bool glow_program_t::compile_shader(GLuint shader, const char* source) {
@@ -141,6 +142,11 @@ class glow_render_instance_t : public wf::scene::render_instance_t {
                 return;
             }
         }
+
+            // Skip if fully transparent
+    if (node->opacity <= 0.0f) {
+        return;
+    }
         
         auto view_bbox = node->view->get_bounding_box();
         float glow_r = g_config.glow_radius;
@@ -195,9 +201,13 @@ class glow_render_instance_t : public wf::scene::render_instance_t {
                     static_cast<float>(view_bbox.width),
                     static_cast<float>(view_bbox.height));
         
-        glm::vec4 color = node->is_active ? g_config.active_color : g_config.inactive_color;
-        glUniform4fv(g_glow_program.u_glow_color, 1, glm::value_ptr(color));
-        glUniform4fv(g_glow_program.u_glow_color_2, 1, glm::value_ptr(g_config.gradient_color_2));
+glm::vec4 color = node->is_active ? g_config.active_color : g_config.inactive_color;
+color.a *= node->opacity;  // Apply fade opacity
+glUniform4fv(g_glow_program.u_glow_color, 1, glm::value_ptr(color));
+
+glm::vec4 grad_color = g_config.gradient_color_2;
+grad_color.a *= node->opacity;  // Apply fade opacity to gradient too
+glUniform4fv(g_glow_program.u_glow_color_2, 1, glm::value_ptr(grad_color));
         
         glUniform1f(g_glow_program.u_glow_radius, g_config.glow_radius);
         glUniform1f(g_glow_program.u_glow_intensity, g_config.glow_intensity);
@@ -330,17 +340,26 @@ void glow_decoration_t::update_focus() {
 }
 
 void glow_decoration_t::update_animation() {
-    static auto start = std::chrono::steady_clock::now();
     auto now = std::chrono::steady_clock::now();
-    float elapsed = std::chrono::duration<float>(now - start).count();
+    float elapsed = std::chrono::duration<float>(now - g_start_time).count();
+    
+    const float DELAY = 1.0f;
+    const float FADE_DURATION = 0.5f;
     
     for (auto& [view, node] : decorations) {
         if (view && view->is_mapped()) {
             node->set_animation_time(elapsed * g_config.animation_speed);
+            
+            float age = elapsed - node->creation_time;
+            if (age < DELAY) {
+                node->opacity = 0.0f;
+            } else {
+                float fade_progress = (age - DELAY) / FADE_DURATION;
+                node->opacity = std::min(1.0f, fade_progress);
+            }
         }
     }
 }
-
 void glow_decoration_t::add_decoration(wayfire_view view) {
     if (!view || decorations.count(view)) {
         return;
@@ -354,6 +373,10 @@ void glow_decoration_t::add_decoration(wayfire_view view) {
     
     auto node = std::make_shared<glow_decoration_node_t>(view);
     node->set_active(view == focused_view);
+
+    // Record creation time using global start
+    auto now = std::chrono::steady_clock::now();
+    node->creation_time = std::chrono::duration<float>(now - g_start_time).count();
     
     auto view_node = view->get_root_node();
     wf::scene::add_front(view_node, node);
@@ -362,7 +385,6 @@ void glow_decoration_t::add_decoration(wayfire_view view) {
     
     LOGD("Added glow decoration for: ", view->get_title());
 }
-
 void glow_decoration_t::remove_decoration(wayfire_view view) {
     auto it = decorations.find(view);
     if (it != decorations.end()) {
