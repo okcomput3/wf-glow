@@ -65,9 +65,15 @@ extern glow_config_t g_config;
  */
 class glow_decoration_node_t : public wf::scene::node_t {
   public:
+     bool ready_to_render = false; 
     wayfire_view view;
     bool is_active = false;
     float animation_time = 0.0f;
+
+    // In glow_decoration_node_t class
+float opacity = 0.0f;           // Current opacity (0-1)
+float creation_time = 0.0f;     // When this decoration was created
+bool fade_started = false;      // Has the fade begun?
     
     // Track previous bounding box for damage when geometry changes
     wf::geometry_t prev_bbox{0, 0, 0, 0};
